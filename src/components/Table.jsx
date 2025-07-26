@@ -18,6 +18,7 @@ const Table = ({
   pageSizeOptions = [5, 10, 20, 50],
   defaultPageSize = 10,
   fixedHeight = "500px",
+  filterComponent = null, // NEW PROP
 }) => {
   const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
@@ -77,15 +78,17 @@ const Table = ({
 
   return (
     <div className="w-full bg-white rounded-lg shadow border border-gray-200 overflow-x-auto">
-      {/* Search bar */}
+      {/* Search bar + filter */}
       <div className="p-4 flex flex-col md:flex-row md:items-center gap-2">
         <input
           type="text"
           placeholder="Search..."
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
-          className="w-full md:w-80 px-3 py-1 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
+          className="w-full max-w-[700px] md:w-[700px] px-3 py-1 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
         />
+        {/* Filter component to the right of search bar */}
+        {filterComponent && <div className="ml-2">{filterComponent}</div>}
         <div className="flex-1" />
         <div className="flex items-center gap-2">
           <span className="text-sm text-gray-500">Rows per page:</span>
@@ -155,7 +158,9 @@ const Table = ({
                       key={col.field}
                       className="px-4 py-3 text-sm text-gray-900 truncate"
                     >
-                      {editRowId === row.id && col.editable ? (
+                      {editRowId === row.id &&
+                      col.editable &&
+                      !col.renderCell ? (
                         <input
                           type="text"
                           value={editRowData[col.field] ?? ""}
@@ -164,6 +169,12 @@ const Table = ({
                           }
                           className="w-full px-2 py-1 border border-blue-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-400"
                         />
+                      ) : col.renderCell ? (
+                        col.renderCell({
+                          value: row[col.field],
+                          row,
+                          onRowUpdate,
+                        })
                       ) : typeof col.valueGetter === "function" ? (
                         col.valueGetter({ value: row[col.field], row })
                       ) : (
@@ -286,6 +297,7 @@ Table.propTypes = {
       width: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
       valueGetter: PropTypes.func,
       editable: PropTypes.bool,
+      renderCell: PropTypes.func, // NEW PROP
     })
   ).isRequired,
   data: PropTypes.arrayOf(PropTypes.object).isRequired,
@@ -296,6 +308,7 @@ Table.propTypes = {
   pageSizeOptions: PropTypes.arrayOf(PropTypes.number),
   defaultPageSize: PropTypes.number,
   fixedHeight: PropTypes.string,
+  filterComponent: PropTypes.node, // NEW PROP
 };
 
 export default Table;

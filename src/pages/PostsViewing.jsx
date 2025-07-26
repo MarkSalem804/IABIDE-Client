@@ -2,6 +2,7 @@ import { PencilSquareIcon } from "@heroicons/react/24/outline";
 import { useState } from "react";
 import Modal from "../components/modals/CreatePostModal";
 import Table from "../components/Table";
+import PropTypes from "prop-types";
 
 const mockRecipients = [
   { id: 1, name: "Alice Johnson" },
@@ -88,6 +89,52 @@ const PostsViewing = () => {
     });
   };
 
+  // --- Type Filter Dropdown for Table ---
+  const typeFilterDropdown = (
+    <select
+      value={selectedType}
+      onChange={(e) => setSelectedType(e.target.value)}
+      className="block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 min-w-[140px]"
+    >
+      <option value="all">All Types</option>
+      <option value="softcopy">Softcopy</option>
+      <option value="hardcopy">Hardcopy</option>
+      <option value="link">Link</option>
+    </select>
+  );
+
+  // --- Status Toggle Cell Renderer ---
+  const StatusToggle = ({ value, row, onRowUpdate }) => (
+    <div className="flex items-center gap-2">
+      <button
+        onClick={() => onRowUpdate({ ...row, status: !row.status })}
+        className={`relative w-12 h-6 rounded-full transition-colors duration-200 focus:outline-none border ${
+          value ? "bg-green-400 border-green-500" : "bg-red-400 border-red-500"
+        }`}
+        title={value ? "Open" : "Closed"}
+        type="button"
+      >
+        <span
+          className={`absolute left-0 top-[-1px] w-6 h-6 bg-white rounded-full shadow transition-transform duration-200 ${
+            value ? "translate-x-6" : "translate-x-0"
+          }`}
+        ></span>
+      </button>
+      <span
+        className={`text-xs font-bold ${
+          value ? "text-green-700" : "text-red-700"
+        }`}
+      >
+        {value ? "Open" : "Closed"}
+      </span>
+    </div>
+  );
+  StatusToggle.propTypes = {
+    value: PropTypes.bool.isRequired,
+    row: PropTypes.object.isRequired,
+    onRowUpdate: PropTypes.func.isRequired,
+  };
+
   const columns = [
     {
       field: "title",
@@ -99,7 +146,8 @@ const PostsViewing = () => {
       field: "status",
       headerName: "Status",
       width: "15%",
-      editable: true,
+      editable: false,
+      renderCell: StatusToggle,
     },
     {
       field: "deadline",
@@ -162,7 +210,7 @@ const PostsViewing = () => {
         </div>
       </div>
 
-      {/* Create Post Button, Search Bar and Type Filter */}
+      {/* Create Post Button */}
       <div className="flex flex-col md:flex-row gap-4 items-center mb-6">
         <button
           className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors flex items-center space-x-2"
@@ -172,18 +220,7 @@ const PostsViewing = () => {
           <span>Create Post</span>
         </button>
         <div className="flex-1" />
-        <div>
-          <select
-            value={selectedType}
-            onChange={(e) => setSelectedType(e.target.value)}
-            className="block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
-          >
-            <option value="all">All Types</option>
-            <option value="softcopy">Softcopy</option>
-            <option value="hardcopy">Hardcopy</option>
-            <option value="link">Link</option>
-          </select>
-        </div>
+        {/* Removed filter dropdown from here */}
       </div>
 
       {/* Posts Table (replaced with reusable Table component) */}
@@ -195,7 +232,8 @@ const PostsViewing = () => {
         onRowDelete={handleRowDelete}
         onRowView={handleRowView}
         defaultPageSize={10}
-        fixedHeight="500px"
+        fixedHeight="530px"
+        filterComponent={typeFilterDropdown}
       />
 
       {/* Pagination (static for now) removed, handled by Table */}
